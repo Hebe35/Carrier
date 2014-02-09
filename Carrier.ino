@@ -69,7 +69,7 @@ owbus owbuses[] = {
   {owsensors6, DEVICE_DISCONNECTED, "LTO poistoilma"}, // Ventilation machine waste air out
   {owsensors7, DEVICE_DISCONNECTED, "ILP imuilma"}, // Carrier intake air
   {owsensors8, DEVICE_DISCONNECTED, "ILP puhallusilma"}, // Carrier blowing air
-  {owsensors9, DEVICE_DISCONNECTED, "ILP kuumakaasu"}, // Carrier gas pipe
+  {owsensors9, DEVICE_DISCONNECTED, "ILP kuumakaasu"}, // Carrier hot gas pipe
   {owsensors10,DEVICE_DISCONNECTED, "Kuumavesivar.keski"}, // Hot water boiler middle
   {owsensors11,DEVICE_DISCONNECTED, "Kuumavesivar.yl\xE1"} // Hot water boiler up
 };
@@ -210,9 +210,20 @@ void updateDisplay()
     Serial.println(owbuses[9].temperature - owbuses[8].temperature);
 
     lcd.clear();
-    lcd.print("ILP l\xE1mmitt\xE1\xE1:");
-    lcd.setCursor(0, 1);
-    lcd.print(owbuses[9].temperature - owbuses[8].temperature);
+    if (carrierHeatpump.operatingMode == 2)
+    {
+      lcd.print("ILP l\xE1mmitt\xE1\xE1:");
+      lcd.setCursor(0, 1);
+      lcd.print(owbuses[9].temperature - owbuses[8].temperature);
+    } else if (carrierHeatpump.operatingMode == 1) {
+      lcd.print("ILP j\xE1\xE1hdytt\xE1\xE1:");
+      lcd.setCursor(0, 1);
+      lcd.print(owbuses[8].temperature - owbuses[9].temperature);
+    } else {
+      lcd.print("ILP puhaltaa:");
+      lcd.setCursor(0, 1);
+      lcd.print(owbuses[9].temperature);
+    }
     displayedSensor++;
   } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 2)) {
     // Mode display
@@ -282,7 +293,6 @@ void controlCarrier()
   int fireplace = owbuses[0].temperature;
   int utility = owbuses[2].temperature;
   int kitchen = owbuses[1].temperature;
- 
 
   // Fireplace fan control
 
@@ -337,7 +347,7 @@ void controlCarrier()
       temperature = 24;
       fanSpeed = FAN_AUTO;
     }
-// kitchen room is hot, as the furnace has been running
+  // Kitchen is hot, as the oven has been running
   } else if (kitchen > 23.5 ) {
     // Default to MODE_FAN with FAN 1
     operatingMode = MODE_FAN;
