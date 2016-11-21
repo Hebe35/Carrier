@@ -16,10 +16,10 @@
 #define WAREHOUSE_RELAY_PIN                35 // Pin for the relay in the warehouse  (optional)
 #define ILP_HEAT_CABLE_RELAY_PIN          A8 // Pin for the ILP heat cable relay 
 #define WATER_HEAT_RELAY_PIN              A10 // Pin for the water heat relay 
-#define HOUSE_HEAT_RELAY_PIN         A11 // Pin for the  house heat drop relay
-#define HOUSE_HEAT_RELAY2_PIN        A9 // Pin for the  house heat drop relay
-#define HOUSE_HEAT_FISSIO_STATE_PIN  A12 // Pin for the  house heat drop from fissio
-#define HOUSE_HEAT_FISSIO_STATE_2_PIN 47 // Pin for the  house heat drop from fissio
+#define HOUSE_HEAT_RELAY_PIN              A11 // Pin for the  house heat drop relay
+#define HOUSE_HEAT_RELAY2_PIN             A9 // Pin for the  house heat drop relay
+#define HOUSE_HEAT_FISSIO_STATE_PIN       A12 // Pin for the  house heat drop from fissio
+#define HOUSE_HEAT_FISSIO_STATE_2_PIN      47 // Pin for the  house heat drop from fissio
 #define WATER_HEAT_FISSIO_STATE_PIN        16 // Pin for the water heat Fissio (pun/valk)
 //#define WATER_HEAT_1000W_RELAY_PIN      A9 // Pin for the water heat 1000w relay 
 
