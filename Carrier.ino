@@ -16,10 +16,10 @@
 #define WAREHOUSE_RELAY_PIN                35 // Pin for the relay in the warehouse  (optional)
 #define ILP_HEAT_CABLE_RELAY_PIN          A8 // Pin for the ILP heat cable relay 
 #define WATER_HEAT_RELAY_PIN              A10 // Pin for the water heat relay 
-#define HOUSE_HEAT_RELAY_PIN              A11 // Pin for the  house heat drop relay
-#define HOUSE_HEAT_RELAY2_PIN             A9 // Pin for the  house heat drop relay
-#define HOUSE_HEAT_FISSIO_STATE_PIN       A12 // Pin for the  house heat drop from fissio
-#define HOUSE_HEAT_FISSIO_STATE_2_PIN      47 // Pin for the  house heat drop from fissio
+#define HOUSE_HEAT_RELAY_PIN         A11 // Pin for the  house heat drop relay
+#define HOUSE_HEAT_RELAY2_PIN        A9 // Pin for the  house heat drop relay
+#define HOUSE_HEAT_FISSIO_STATE_PIN  A12 // Pin for the  house heat drop from fissio
+#define HOUSE_HEAT_FISSIO_STATE_2_PIN 47 // Pin for the  house heat drop from fissio
 #define WATER_HEAT_FISSIO_STATE_PIN        16 // Pin for the water heat Fissio (pun/valk)
 //#define WATER_HEAT_1000W_RELAY_PIN      A9 // Pin for the water heat 1000w relay 
 
@@ -1530,21 +1530,15 @@ void alarmHouseHeatDrop()
     digitalWrite(HOUSE_HEAT_RELAY_PIN, alarmState);
      houseHeatState = false;
      Serial.println("house heat state OFF");
-     
-  // if outside temp goes to a on < 14 - house heat OFF   
-    } else if(outdoorTemp  >= HouseHeatOff){
+
+   // if house heat Fission state goes to a on  - house heat OFF   
+   } else if(HouseHeatFissioState  == HIGH && JuliaBedroomTemp  >= 18 && masterBedroomTemp  >= 18 ){
     houseHeatState = false;
     digitalWrite(HOUSE_HEAT_RELAY_PIN, LOW);
     Serial.println("house heat state OFF");
 
-// if outside temp goes to a on < 14 - house heat OFF   
-    } else if(HouseHeatFissioState  == HIGH && JuliaBedroomTemp  >= 18  && masterBedroomTemp  >= 18 ){
-    houseHeatState = false;
-    digitalWrite(HOUSE_HEAT_RELAY_PIN, LOW);
-    Serial.println("house heat state OFF");
-
- // if Fissio heat goes to a on  - house heat on
-   } else if (HouseHeatFissioState  == LOW || JuliaBedroomTemp  <= 19 ||  masterBedroomTemp  <= 19 ) {
+  // if Fissio heat goes to a on  - house heat on
+   } else if (HouseHeatFissioState  == LOW && outdoorTemp  <= HouseHeatOn || JuliaBedroomTemp  <= 19 ||  masterBedroomTemp  <= 19 ) {
    digitalWrite(HOUSE_HEAT_RELAY_PIN, HIGH);
    houseHeatState = true;
    Serial.println("house heat state ON");
@@ -1577,7 +1571,6 @@ void alarmHouseHeatDrop()
     digitalWrite(HOUSE_HEAT_RELAY2_PIN, alarmState);
      houseHeatState2  = false;
      Serial.println("house heat state2 OFF");
-    
      
   // if Fissio heat2 goes to a OFF  - house heat OFF  
     } else if(HouseHeatFissioState2  == HIGH && utility >= 20){// { && outdoorTemp  <= HouseHeatOn
@@ -1585,7 +1578,7 @@ void alarmHouseHeatDrop()
     digitalWrite(HOUSE_HEAT_RELAY2_PIN, LOW);
     Serial.println("house heat state2 OFF");
 
-// if Fissio heat2 goes to a on  - house heat on
+  // if Fissio heat2 goes to a on  - house heat on
    } else if (HouseHeatFissioState2  == LOW ||  utility <= 19) {
    digitalWrite(HOUSE_HEAT_RELAY2_PIN, HIGH);
    houseHeatState2 = true;
