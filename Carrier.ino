@@ -1,4 +1,4 @@
-// 21.11.2016
+// 22.11.2016
 #include <avr/wdt.h>
 #include <LiquidCrystal.h>
 #include <LCDKeypad.h>
@@ -669,8 +669,52 @@ void updateDisplay()
       lcd.print("OFF");
     }
 
-    displayedSensor++;
+  displayedSensor++;
   } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 16)) {
+    // heat State mode display
+    lcd.clear();
+    lcd.print("l\xE1mmitys V");
+    lcd.setCursor(13, 0);
+    if (houseHeatState == LOW) {
+      lcd.print("OFF");
+    } else { 
+      lcd.print("ON");
+      }
+      lcd.setCursor(0, 1);
+      lcd.print("l\xE1mmitys L");
+      lcd.setCursor(13, 1);
+    if (houseHeatState2 == LOW) {
+      lcd.print("OFF");
+    } else {
+      lcd.print("ON");
+    }
+
+displayedSensor++;
+  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 18)) {
+    // sauna heat State mode display
+    lcd.clear();
+    lcd.print("saunan l\xE1mmitys");
+    lcd.setCursor(0, 1);
+    if (saunaHeatState == LOW) {
+      lcd.print("ON");
+    } else {
+      lcd.print("OFF");
+    }
+
+ displayedSensor++;
+  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 19)) {
+    // water heat State mode display
+    lcd.clear();
+    lcd.print("veden l\xE1mmitys");
+    lcd.setCursor(0, 1);
+    if (waterHeatState == LOW) {
+      lcd.print("ON");
+    } else {
+      lcd.print("OFF");
+    }
+
+    displayedSensor++;
+  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 20)) {
 
     // waterPulsesHistory
     lcd.clear();
@@ -680,14 +724,14 @@ void updateDisplay()
     lcd.print(" Litraa ");
 
     displayedSensor++;
-  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 17)) {
+  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 21)) {
     lcd.clear();
     lcd.print("Vedenk\xE1ytt\xEF");
     lcd.setCursor(0, 1);
     lcd.print("historia 12 min");
 
     displayedSensor++;
-  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 18)) {
+  } else if (displayedSensor < (sizeof(owbuses) / sizeof(struct owbus) + 22)) {
 
     lcd.clear();
     lcd.setCursor(0, 0);
