@@ -1,4 +1,4 @@
-// 22.11.2016
+// 2.12.2016
 #include <avr/wdt.h>
 #include <LiquidCrystal.h>
 #include <LCDKeypad.h>
@@ -1137,6 +1137,8 @@ if  (heatpumpAirFlowRate  < 0 ){
     
 // Log the water meter pulses
     client.print(",water_pulses:");
+    client.print(emonWaterPulses);
+    client.print(",water_pulses_2:");
     client.print(emonWaterPulses);
     // Log the Heatpump COP / EER
     client.print(",Heatpump_COP_EER:");
