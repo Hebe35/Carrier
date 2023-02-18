@@ -1,4 +1,4 @@
-// 25.2.2019
+// 23.07.2022
 #include <avr/wdt.h>
 #include <LiquidCrystal.h>
 #include <LCDKeypad.h>
@@ -214,6 +214,11 @@ int heatpumpPower;
 int heatpumpAirFlowRate;
 int heatCOPEEROff = 0;
 
+// LTO Ilto
+int LTOefficient = 0;
+int LTOefficientIn = 0;
+int LTOefficientOut = 0;
+
 // House
 float housePower = 0.00;
 
@@ -375,23 +380,23 @@ void setup()
   timer.every(2000, alarmWaterShutoff);            // every 2 seconds
   timer.every(60000, readSensors);                 // every minute
   timer.every(60000, updateEmoncms);               // every minute
-  timer.every(126000, controlHouse);               // every 2.1 minutes
+  timer.every(252000, controlHouse);               // every 4.2 minutes
   timer.every(60000, checkForWaterShutoff);        // every minute
   timer.every(15000, requestTemperatures);         // every 15 seconds
-  timer.every(450017, controlCarrier);             // every ~ 7.50028 minutes  oli 5.50028 minute = 330017 ms
+  timer.every(920000, controlCarrier);             // every ~ 15.333333. minutes  7.50028 minute = 450017ms =  oli 5.50028 minute = 330017ms
 
+ // Heatpump rpm pulse counter interrupt
+  // interrupt 2 uses pin 21
+  attachInterrupt(2, incrementheatpumpRpmPulses, FALLING);
+  
   // Water meter pulse counter interrupt
   // interrupt 3 uses pin 20
   attachInterrupt(3, incrementwaterPulses, FALLING);
   
   // Heatpump power pulse counter interrupt
-  // interrupt 2 uses pin 21
-  attachInterrupt(2, incrementheatpumpPowerPulses, FALLING);
-  
-  // Heatpump rpm pulse counter interrupt
   // interrupt 4 uses pin 19
-  attachInterrupt(4, incrementheatpumpRpmPulses, FALLING);
-  
+  attachInterrupt(4, incrementheatpumpPowerPulses, FALLING);
+   
   // House pulse counter interrupt
   // interrupt 5 uses pin 18
   attachInterrupt(5, incrementhousePowerPulses, FALLING);
@@ -444,7 +449,10 @@ void requestTemperatures()
 void readTemperatures()
 {
   for (int i=0; i < sizeof(owbuses) / sizeof(struct owbus); i++) {
-    owbuses[i].temperature = owbuses[i].owbus.getTempCByIndex(0);
+    float temperature = owbuses[i].owbus.getTempCByIndex(0);
+    if (temperature != DEVICE_DISCONNECTED) {
+      owbuses[i].temperature = owbuses[i].owbus.getTempCByIndex(0);
+    }
   }
 }
 
@@ -1105,9 +1113,9 @@ if  (heatpumpAirFlowRate  < 0 ){
 
   feedWatchdog();
 
-  if (client.connect("192.168.1.117", 80)) {
+  if (client.connect("192.168.1.144", 80)) {
     // send the HTTP GET request:
-    client.print("GET http://192.168.1.117/emoncms/input/post.json?apikey=");
+    client.print("GET http://192.168.1.144/emoncms/input/post.json?apikey=");
     client.print(EMONCMS_APIKEY);
     client.print("&json={");
 
@@ -1174,6 +1182,9 @@ if  (heatpumpAirFlowRate  < 0 ){
     // Log the House power pulses
     client.print(",House_Power_pulses:");
     client.print(emonHousePowerPulses);
+    // Log the House power pulses
+    client.print(",House_Power_pulses2:");
+    client.print(emonHousePowerPulses);
     // Log the House power kW
     client.print(",House_Power_kW:");
     client.print(housePower);
@@ -1182,6 +1193,15 @@ if  (heatpumpAirFlowRate  < 0 ){
     client.print(DHT11Humidity);
     client.print(",dht11_temperature:");
     client.print(DHT11Temperature);
+    // Log the LTOefficient readings
+    client.print(",LTOefficient:");
+    client.print(LTOefficient);
+    // Log the LTOefficientIn readings
+    client.print(",LTOefficientIn:");
+    client.print(LTOefficientIn);
+    // Log the LTOefficientOut readings
+    client.print(",LTOefficientOut:");
+    client.print(LTOefficientOut);
     // Log the MQ7 readings
     client.print(",mq7_colevel:");
     client.print(MQ7COLevel);
@@ -1320,7 +1340,7 @@ if  (heatpumpAirFlowRate  < 0 ){
   //    client.print("1");
     }
 
-    feedWatchdog();
+   // feedWatchdog();
     
     client.println("} HTTP/1.1");
     client.println("Host: 192.168.0.15");
@@ -1354,14 +1374,34 @@ void readSensors() {
 // Read the DHT11 humidity & temperature sensor
 //
 void readDHT11() {
-  DHT11Humidity = dht.readHumidity();
-  DHT11Temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
 
   // check if returns are valid, if they are NaN (not a number) then something went wrong!
-  if (isnan(DHT11Humidity) || isnan(DHT11Temperature)) {
-    DHT11Humidity = 0.0;
-    DHT11Temperature = 0.0;
+  if (!isnan(DHT11Humidity)) {
+    DHT11Humidity = humidity;
   }
+  if (!isnan(DHT11Temperature)) {    
+    DHT11Temperature = temperature;
+  }
+
+  // Calculate the LTOefficient 
+
+  //int vent_dirty = owbuses[16].temperature; // sisäilma
+  //int vent_waste_house = DHT11Temperature;
+  //int vent_outdoor = owbuses[14].temperature;
+  //int vent_waste_out = owbuses[17].temperature;
+
+  LTOefficient= ((DHT11Temperature-owbuses[17].temperature)/(DHT11Temperature-owbuses[14].temperature))*100; //
+  
+  // Calculate the LTOefficientIn 
+
+  LTOefficientIn= ((owbuses[16].temperature-owbuses[14].temperature)/(DHT11Temperature-owbuses[14].temperature))*100; //
+
+  // Calculate the LTOefficientOut 
+
+  LTOefficientOut= ((DHT11Temperature-owbuses[17].temperature)/(DHT11Temperature-owbuses[14].temperature))*100; //
+
 }
 
 //
@@ -1377,8 +1417,8 @@ void readMQ7() {
 //
 void readMG811() {
   // Sensor Calibration Constants
-  const float v400ppm = 0.90;   //MUST BE SET ACCORDING TO CALIBRATION -> FREE AIR 2.85  USE 1.11 16.05.2015
-  const float v40000ppm = 0.05; //MUST BE SET ACCORDING TO CALIBRATION -> FREE AIR 1.87  USE 0.40 16.05.2015
+  const float v400ppm = 4.70;   //MUST BE SET ACCORDING TO CALIBRATION -> FREE AIR 2.85  USE 1.11 16.05.2015
+  const float v40000ppm = 1.85; //MUST BE SET ACCORDING TO CALIBRATION -> FREE AIR 1.87  USE 0.40 16.05.2015
   const float deltavs = v400ppm - v40000ppm;
   const float A = deltavs/(log10(400) - log10(40000));
   const float B = log10(400);
@@ -1600,7 +1640,7 @@ void alarmHouseHeatDrop()
      houseHeatState = false;
      Serial.println("house heat state OFF");
 
-   // if house heat Fission state goes to a on  - house heat OFF   
+   // if house heat Fission state goes to a off  - house heat OFF   
    } else if(HouseHeatFissioState  == HIGH && JuliaBedroomTemp  >= 18 && masterBedroomTemp  >= 18 ){
     houseHeatState = false;
     digitalWrite(HOUSE_HEAT_RELAY_PIN, LOW);
@@ -1623,8 +1663,8 @@ void alarmHouseHeatDrop()
 //  Serial.println("house heat state2 ON");
 
 
-    // housePower >= 10 kw a on state - house heat OFF and warehouse 230v 16a off
- if (housePower >= 10) {// housePower >= 10 kw
+    // housePower >= 20 kw a on state - house heat OFF and warehouse 230v 16a off
+ if (housePower >= 20) {// housePower >= 20 kw
     digitalWrite(HOUSE_HEAT_RELAY2_PIN, LOW);
     digitalWrite(WAREHOUSE_RELAY_PIN, HIGH);
      houseHeatState2 = false;
@@ -1660,8 +1700,8 @@ void alarmHouseHeatDrop()
    Serial.println("house heat state2 ON");
     
   }
-    // housePower <= 10 kw a on state - warehouse 230v 16a ON
- if (housePower <= 10 && saunaHeatState == HIGH ) {// housePower <= 10 kw
+    // housePower <= 15 kw a on state - warehouse 230v 16a ON
+ if (housePower <= 15 && saunaHeatState == HIGH ) {// housePower <= 15 kw
     digitalWrite(WAREHOUSE_RELAY_PIN, LOW);
      WAREHOUSE_RELAY_STATE = true;
      Serial.println("WAREHOUSE_RELAY_STATE ON");
