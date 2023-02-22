@@ -1374,38 +1374,28 @@ if  (heatpumpAirFlowRate  < 0 ){
  // check if returns are valid, if they are NaN (not a number) then something went wrong!
  
     // Log the DHT11 readings
-    client.print(",dht11_humidity:");
     if ((!isnan(DHT11Humidity)) && DHT11Humidity > -1  && DHT11Humidity < 101 && DHT11Humidity != 127) { // || DHT11Humidity == NaN) {
+     client.print(",dht11_humidity:");
      client.print(DHT11Humidity);
-     } else {
-      client.print(",");
      }
-    client.print(",dht11_temperature:");
     if (!isnan((DHT11Temperature)) && DHT11Temperature > -100 && DHT11Temperature < 100 && DHT11Temperature != 127) {
+     client.print(",dht11_temperature:");
      client.print(DHT11Temperature);
-    } else {
-     client.print(","); 
-     }
+    }
     // Log the LTOefficient readings
-      client.print(",LTOefficient:");
     if (LTOefficient > -100 && LTOefficient < 120) {
+      client.print(",LTOefficient:");
       client.print(LTOefficient); 
-      } else {
-       client.print(",");
      }
     // Log the LTOefficientIn readings
-      client.print(",LTOefficientIn:");
     if (LTOefficientIn > -100 && LTOefficientIn < 120) {
+     client.print(",LTOefficientIn:");      
      client.print(LTOefficientIn); 
-     } else {
-      client.print(",");
      }  
     // Log the LTOefficientOut readings
-      client.print(",LTOefficientOut:");
       if (LTOefficientOut > -100 && LTOefficientOut < 120) {
-      client.print(LTOefficientOut);
-     } else {
-      client.print(",");   
+      client.print(",LTOefficientOut:");        
+      client.print(LTOefficientOut); 
      }
       
   // void waterHeat1000w
